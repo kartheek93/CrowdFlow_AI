@@ -1,0 +1,91 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --color-app-bg: var(--app-bg);
+  --color-app-surface: var(--app-surface);
+  --color-app-surface-hover: var(--app-surface-hover);
+  --color-app-primary: var(--app-primary);
+  --color-app-muted: var(--app-muted);
+  --color-app-border: var(--app-border);
+  --color-app-bg-translucent: var(--app-bg-translucent);
+}
+
+:root {
+  --app-bg: #f8fafc;        /* slate-50 */
+  --app-surface: #ffffff;   /* white */
+  --app-surface-hover: #f1f5f9; /* slate-100 */
+  --app-primary: #0f172a;   /* slate-900 */
+  --app-muted: #64748b;     /* slate-500 */
+  --app-border: #e2e8f0;    /* slate-200 */
+  --app-bg-translucent: rgba(248, 250, 252, 0.7);
+  --glass-bg: rgba(255, 255, 255, 0.9);
+  --background: var(--app-bg);
+  --foreground: var(--app-primary);
+}
+
+.dark {
+  --app-bg: #0f172a;        /* slate-900 */
+  --app-surface: #1e293b;   /* slate-800 */
+  --app-surface-hover: #334155; /* slate-700 */
+  --app-primary: #f8fafc;   /* slate-50 */
+  --app-muted: #94a3b8;     /* slate-400 */
+  --app-border: #334155;    /* slate-700 */
+  --app-bg-translucent: rgba(15, 23, 42, 0.6);
+  --glass-bg: rgba(30, 41, 59, 0.7);
+  --background: var(--app-bg);
+  --foreground: var(--app-primary);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+@keyframes ken-burns {
+  0% {
+    transform: scale(1) translate(0, 0);
+  }
+  50% {
+    transform: scale(1.08) translate(-1%, 1%);
+  }
+  100% {
+    transform: scale(1) translate(0, 0);
+  }
+}
+
+.stadium-bg-motion {
+  position: fixed;
+  top: -5%;
+  left: -5%;
+  width: 110vw;
+  height: 110vh;
+  background-image: url('/stadium_bg.png');
+  background-size: cover;
+  background-position: center;
+  z-index: 0;
+  opacity: 0.5;
+  filter: blur(1px);
+  animation: ken-burns 40s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.glass-panel {
+  background: rgba(30, 41, 59, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 1rem;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+}
+
+.status-high { color: #ef4444; }
+.status-medium { color: #f59e0b; }
+.status-low { color: #10b981; }
+
+.bg-high { background-color: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.4); }
+.bg-medium { background-color: rgba(245, 158, 11, 0.2); border: 1px solid rgba(245, 158, 11, 0.4); }
+.bg-low { background-color: rgba(16, 185, 129, 0.2); border: 1px solid rgba(16, 185, 129, 0.4); }
