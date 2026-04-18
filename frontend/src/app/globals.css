@@ -23,6 +23,7 @@
   --glass-bg: rgba(255, 255, 255, 0.9);
   --background: var(--app-bg);
   --foreground: var(--app-primary);
+  --focus-ring: #3b82f6;    /* blue-500 */
 }
 
 .dark {
@@ -36,6 +37,7 @@
   --glass-bg: rgba(30, 41, 59, 0.7);
   --background: var(--app-bg);
   --foreground: var(--app-primary);
+  --focus-ring: #60a5fa;    /* blue-400 — higher contrast on dark */
 }
 
 body {
@@ -43,6 +45,84 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
   transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* ─── Accessibility: Visible keyboard focus indicator ─────────────────────── */
+/* Use :focus-visible so mouse users don't see outlines, but keyboard users do  */
+:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+/* Remove default outline only after our custom one is set */
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* ─── Accessibility: High-contrast mode support ───────────────────────────── */
+@media (prefers-contrast: more) {
+  :root,
+  .dark {
+    --app-primary: #000000;
+    --app-muted: #1e293b;
+    --app-border: #000000;
+    --focus-ring: #0000ff;
+  }
+
+  .dark {
+    --app-primary: #ffffff;
+    --app-muted: #e2e8f0;
+    --app-border: #ffffff;
+    --focus-ring: #ffff00;
+  }
+
+  .glass-panel {
+    background: rgba(0, 0, 0, 0.95);
+    border: 2px solid #ffffff;
+  }
+}
+
+/* ─── Accessibility: Reduced motion for vestibular/motion sensitivity ──────── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .stadium-bg-motion {
+    animation: none;
+  }
+}
+
+/* ─── Screen reader only utility ──────────────────────────────────────────── */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* Reveal sr-only on focus for skip links */
+.sr-only.focus\:not-sr-only:focus,
+.focus\:not-sr-only:focus {
+  position: static;
+  width: auto;
+  height: auto;
+  padding: revert;
+  margin: revert;
+  overflow: visible;
+  clip: auto;
+  white-space: normal;
 }
 
 @keyframes ken-burns {
@@ -80,6 +160,15 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 1rem;
   box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+}
+
+/* ─── Custom scrollbar ────────────────────────────────────────────────────── */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--app-border);
+  border-radius: 3px;
 }
 
 .status-high { color: #ef4444; }
