@@ -92,3 +92,12 @@ export function trackPageView(pageName: string): void {
     page_title: pageName,
   });
 }
+
+/** Fired on Firebase Auth actions. */
+export function trackAuthEvent(action: string, provider: string): void {
+  gtag("event", "auth_action", {
+    event_category: "Authentication",
+    event_label: provider,
+    auth_step: action,
+  });
+}

@@ -108,16 +108,35 @@ export default function StadiumSelector({ onSelect, isDarkMode = true, onToggleT
             </span>
           </div>
 
-          {onToggleTheme && (
+          <div className="flex items-center gap-4">
             <button
-              onClick={onToggleTheme}
-              aria-label={isDarkMode ? "Switch to light mode" : "Switch to dark mode"}
-              aria-pressed={isDarkMode}
-              className="p-2.5 rounded-xl border border-app-border bg-app-surface/50 hover:bg-app-surface text-app-muted hover:text-app-primary backdrop-blur-md shadow-sm transition-all"
+              onClick={async () => {
+                const { signInWithGoogle } = await import("../lib/firebase");
+                try {
+                  const user = await signInWithGoogle();
+                  alert(`Successfully signed in as: ${user.displayName}`);
+                } catch (err) {
+                  console.error(err);
+                }
+              }}
+              className="hidden md:flex items-center gap-2 px-4 py-2 bg-white text-gray-700 border border-gray-300 rounded-xl font-semibold text-sm hover:bg-gray-50 transition-all shadow-sm"
+              aria-label="Sign in with Google"
             >
-              {isDarkMode ? <Sun size={20} aria-hidden="true" /> : <Moon size={20} aria-hidden="true" />}
+              <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" className="w-4 h-4" alt="" />
+              Sign in with Google
             </button>
-          )}
+
+            {onToggleTheme && (
+              <button
+                onClick={onToggleTheme}
+                aria-label={isDarkMode ? "Switch to light mode" : "Switch to dark mode"}
+                aria-pressed={isDarkMode}
+                className="p-2.5 rounded-xl border border-app-border bg-app-surface/50 hover:bg-app-surface text-app-muted hover:text-app-primary backdrop-blur-md shadow-sm transition-all"
+              >
+                {isDarkMode ? <Sun size={20} aria-hidden="true" /> : <Moon size={20} aria-hidden="true" />}
+              </button>
+            )}
+          </div>
         </div>
 
         <div className="max-w-5xl w-full">

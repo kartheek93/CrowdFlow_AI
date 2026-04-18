@@ -15,10 +15,33 @@ export const metadata: Metadata = {
     "CrowdFlow AI is an AI-powered smart stadium assistant providing real-time crowd analytics, congestion alerts, and route recommendations for Indian stadiums.",
   keywords: ["stadium", "crowd management", "AI", "India", "cricket", "safety"],
   authors: [{ name: "CrowdFlow AI Team" }],
+  viewport: {
+    width: "device-width",
+    initialScale: 1,
+    maximumScale: 5,
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
+  icons: {
+    icon: "/favicon.ico",
+    apple: "/apple-touch-icon.png",
+  },
   openGraph: {
     title: "CrowdFlow AI – Smart Stadium Crowd Management",
     description:
       "Real-time crowd analytics and AI-powered navigation for Indian stadiums.",
+    url: "https://crowdflow.ai",
+    siteName: "CrowdFlow AI",
+    locale: "en_IN",
     type: "website",
   },
 };

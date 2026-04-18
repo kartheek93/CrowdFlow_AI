@@ -1,0 +1,21 @@
+{
+  "name": "crowdflow-ai-root",
+  "version": "1.0.0",
+  "description": "Root runner for CrowdFlow AI — Smart Stadium Assistant",
+  "scripts": {
+    "test": "npm run test:frontend && npm run test:backend",
+    "test:frontend": "cd frontend && npm test",
+    "test:backend": "cd backend && .\\venv\\Scripts\\activate && pytest",
+    "dev": "start.bat"
+  },
+  "keywords": [
+    "AI",
+    "Stadium",
+    "Google Maps",
+    "Gemini",
+    "FastAPI",
+    "Next.js"
+  ],
+  "author": "CrowdFlow AI Team",
+  "license": "MIT"
+}
