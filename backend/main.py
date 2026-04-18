@@ -9,10 +9,16 @@ import os
 import random
 import math
 from dotenv import load_dotenv
+<<<<<<< HEAD
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
+from fastapi.middleware.gzip import GZipMiddleware
 import hashlib
+=======
+from fastapi.middleware.cors import CORSMiddleware
+
+>>>>>>> 14fc5bc6149bc7fd0a30698a3294216d6f56f66a
 
 load_dotenv()
 
@@ -46,6 +52,9 @@ app = FastAPI(
 
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+# ─── Efficiency: GZip Compression ─────────────────────────────────────────────
+app.add_middleware(GZipMiddleware, minimum_size=1000)
 
 # ─── Security: Request size limit ─────────────────────────────────────────────
 @app.middleware("http")

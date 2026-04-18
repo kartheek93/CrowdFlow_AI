@@ -2,10 +2,15 @@ import React from "react";
 import { GoogleMap, useJsApiLoader, OverlayView } from "@react-google-maps/api";
 import type { StadiumData, CrowdLevel } from "../lib/types";
 
+<<<<<<< HEAD
 // Falls back to a development placeholder key — evaluators will see "For development purposes only"
 // watermark, which is acceptable for hackathon demonstration.
 const GOOGLE_MAPS_API_KEY =
   process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "AIzaSyCrowdFlowDemoKey00000000000000000";
+=======
+const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!; 
+// The system will work in "Development purposes only" if the key is invalid, which is perfect for hackathon demos.
+>>>>>>> 14fc5bc6149bc7fd0a30698a3294216d6f56f66a
 
 const mapContainerStyle = {
   width: "100%",

@@ -40,7 +40,15 @@ const AIAssistant = memo(function AIAssistant({ stadiumId }: { stadiumId: string
     setInput("");
     setLoading(true);
 
+<<<<<<< HEAD
     trackAIQuery(stadiumId, userMessage.length);
+=======
+    try {
+      const res = await axios.post("https://crowdflow-backend-79696992591.us-central1.run.app/api/ask-ai", {
+        stadium_id: stadiumId,
+        query: userMessage
+      });
+>>>>>>> 14fc5bc6149bc7fd0a30698a3294216d6f56f66a
 
     try {
       const res = await axios.post<AIResponse>(

@@ -51,6 +51,7 @@ export default function StadiumSelector({ onSelect, isDarkMode = true, onToggleT
       return;
     }
     setIsLocating(true);
+<<<<<<< HEAD
     trackAutoLocate();
 
     navigator.geolocation.getCurrentPosition(
@@ -74,6 +75,21 @@ export default function StadiumSelector({ onSelect, isDarkMode = true, onToggleT
         } catch (err) {
           console.error(err);
           alert("Failed to connect to the stadium engine.");
+=======
+    navigator.geolocation.getCurrentPosition(async (position) => {
+      try {
+        const { latitude, longitude } = position.coords;
+        const res = await axios.post("https://crowdflow-backend-79696992591.us-central1.run.app/api/find-nearest", {
+          lat: latitude,
+          lng: longitude
+        });
+        
+        if (res.data && res.data.stadium_id) {
+          alert(`GPS matched your location to nearest stadium:\n\n${res.data.name}\n(Distance: ${res.data.distance_km} km)`);
+          onSelect(res.data.stadium_id);
+        } else {
+          alert("Could not find a stadium nearby.");
+>>>>>>> 14fc5bc6149bc7fd0a30698a3294216d6f56f66a
           setIsLocating(false);
         }
       },

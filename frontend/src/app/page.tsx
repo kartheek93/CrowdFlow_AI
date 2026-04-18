@@ -35,6 +35,8 @@ function sanitizeInput(value: string, maxLen = 128): string {
   return value.replace(/[\x00-\x1f\x7f]/g, "").trim().slice(0, maxLen);
 }
 
+const BASE_URL = "https://crowdflow-backend-79696992591.us-central1.run.app";
+
 export default function Home() {
   const [activeStadiumId, setActiveStadiumId] = useState<string | null>(null);
   const [activeTab, setActiveTab]             = useState<TabId>("dashboard");
@@ -67,10 +69,14 @@ export default function Home() {
       abortControllerRef.current = controller;
 
       try {
+<<<<<<< HEAD
         const res = await axios.get(
           `http://localhost:8000/api/stadium-data?stadium_id=${encodeURIComponent(activeStadiumId)}`,
           { signal: controller.signal }
         );
+=======
+        const res = await axios.get(`${BASE_URL}/api/stadium-data?stadium_id=${activeStadiumId}`);
+>>>>>>> 14fc5bc6149bc7fd0a30698a3294216d6f56f66a
         setStadiumData(res.data);
       } catch (err) {
         if (!axios.isCancel(err)) {
@@ -100,13 +106,22 @@ export default function Home() {
     };
   }, [activeStadiumId]);
 
+<<<<<<< HEAD
   // Track page view when entering a stadium dashboard
   useEffect(() => {
     if (activeStadiumId) {
       trackPageView(`Stadium Dashboard: ${activeStadiumId}`);
+=======
+  const handleEventTrigger = async (eventName: string) => {
+    try {
+      await axios.post("https://crowdflow-backend-79696992591.us-central1.run.app/api/trigger-event", { stadium_id: activeStadiumId, event_name: eventName });
+    } catch (e) {
+      console.error(e);
+>>>>>>> 14fc5bc6149bc7fd0a30698a3294216d6f56f66a
     }
   }, [activeStadiumId]);
 
+<<<<<<< HEAD
   const handleStadiumSelect = useCallback((id: string) => {
     trackStadiumSelect(id);
     setActiveStadiumId(id);
@@ -167,6 +182,16 @@ export default function Home() {
     },
     [activeStadiumId]
   );
+=======
+  const handleLocationChange = async (loc: string) => {
+    try {
+      await axios.post("https://crowdflow-backend-79696992591.us-central1.run.app/api/set-location", { stadium_id: activeStadiumId, location: loc });
+      setStadiumData(prev => prev ? { ...prev, user_location: loc } : prev);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+>>>>>>> 14fc5bc6149bc7fd0a30698a3294216d6f56f66a
 
   if (!activeStadiumId) {
     return (

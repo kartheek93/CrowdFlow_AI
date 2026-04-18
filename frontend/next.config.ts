@@ -45,6 +45,7 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+<<<<<<< HEAD
   async headers() {
     return [
       {
@@ -54,6 +55,9 @@ const nextConfig: NextConfig = {
     ];
   },
   poweredByHeader: false,
+=======
+  output: "standalone",
+>>>>>>> 14fc5bc6149bc7fd0a30698a3294216d6f56f66a
 };
 
 export default nextConfig;
