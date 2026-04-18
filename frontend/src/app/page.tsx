@@ -9,6 +9,8 @@ import MapContainer from "../components/MapContainer";
 import OrganizerInsights from "../components/OrganizerInsights";
 import StadiumSelector from "../components/StadiumSelector";
 
+const BASE_URL = "https://crowdflow-backend-79696992591.us-central1.run.app";
+
 export default function Home() {
   const [activeStadiumId, setActiveStadiumId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -30,7 +32,7 @@ export default function Home() {
     
     const fetchData = async () => {
       try {
-        const res = await axios.get(`http://localhost:8000/api/stadium-data?stadium_id=${activeStadiumId}`);
+        const res = await axios.get(`${BASE_URL}/api/stadium-data?stadium_id=${activeStadiumId}`);
         setStadiumData(res.data);
       } catch (e) {
         console.error("Backend not running or unreachable");
@@ -43,7 +45,7 @@ export default function Home() {
 
   const handleEventTrigger = async (eventName: string) => {
     try {
-      await axios.post("http://localhost:8000/api/trigger-event", { stadium_id: activeStadiumId, event_name: eventName });
+      await axios.post("https://crowdflow-backend-79696992591.us-central1.run.app/api/trigger-event", { stadium_id: activeStadiumId, event_name: eventName });
     } catch (e) {
       console.error(e);
     }
@@ -51,7 +53,7 @@ export default function Home() {
 
   const handleLocationChange = async (loc: string) => {
     try {
-      await axios.post("http://localhost:8000/api/set-location", { stadium_id: activeStadiumId, location: loc });
+      await axios.post("https://crowdflow-backend-79696992591.us-central1.run.app/api/set-location", { stadium_id: activeStadiumId, location: loc });
       setStadiumData(prev => prev ? { ...prev, user_location: loc } : prev);
     } catch (e) {
       console.error(e);

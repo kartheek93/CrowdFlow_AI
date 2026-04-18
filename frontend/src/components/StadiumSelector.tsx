@@ -46,7 +46,7 @@ export default function StadiumSelector({ onSelect, isDarkMode = true, onToggleT
     navigator.geolocation.getCurrentPosition(async (position) => {
       try {
         const { latitude, longitude } = position.coords;
-        const res = await axios.post("http://localhost:8000/api/find-nearest", {
+        const res = await axios.post("https://crowdflow-backend-79696992591.us-central1.run.app/api/find-nearest", {
           lat: latitude,
           lng: longitude
         });

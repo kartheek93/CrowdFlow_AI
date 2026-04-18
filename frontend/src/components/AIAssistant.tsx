@@ -27,7 +27,7 @@ export default function AIAssistant({ stadiumId }: { stadiumId: string }) {
     setLoading(true);
 
     try {
-      const res = await axios.post("http://localhost:8000/api/ask-ai", {
+      const res = await axios.post("https://crowdflow-backend-79696992591.us-central1.run.app/api/ask-ai", {
         stadium_id: stadiumId,
         query: userMessage
       });

@@ -1,7 +1,7 @@
 import React from 'react';
 import { GoogleMap, useJsApiLoader, OverlayView } from '@react-google-maps/api';
 
-const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "dummy_key_for_submission"; 
+const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!; 
 // The system will work in "Development purposes only" if the key is invalid, which is perfect for hackathon demos.
 
 const mapContainerStyle = {

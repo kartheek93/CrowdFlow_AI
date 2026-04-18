@@ -6,6 +6,8 @@ import os
 import random
 import math
 from dotenv import load_dotenv
+from fastapi.middleware.cors import CORSMiddleware
+
 
 load_dotenv()
 
