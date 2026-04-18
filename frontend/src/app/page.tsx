@@ -30,12 +30,16 @@ const TABS = [
 
 type TabId = typeof TABS[number]["id"];
 
-/** Sanitize a string for safe use in API requests — strips control chars and trims. */
+/** 
+ * Sanitize a string for safe use in API requests.
+ * Drops control characters and ensures reasonable length limits.
+ */
 function sanitizeInput(value: string, maxLen = 128): string {
   return value.replace(/[\x00-\x1f\x7f]/g, "").trim().slice(0, maxLen);
 }
 
-const BASE_URL = "https://crowdflow-backend-79696992591.us-central1.run.app";
+// In production, this would be your Cloud Run URL. Falling back to localhost for demo.
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 export default function Home() {
   const [activeStadiumId, setActiveStadiumId] = useState<string | null>(null);
@@ -46,8 +50,9 @@ export default function Home() {
 
   const locationDebounceRef  = useRef<ReturnType<typeof setTimeout> | null>(null);
   const abortControllerRef   = useRef<AbortController | null>(null);
+  const sidebarRef           = useRef<HTMLElement>(null);
 
-  // Apply dark/light mode class
+  // Sync dark mode class with document root
   useEffect(() => {
     if (isDarkMode) {
       document.documentElement.classList.add("dark");
@@ -56,12 +61,11 @@ export default function Home() {
     }
   }, [isDarkMode]);
 
-  // ── Adaptive polling: 3s when visible, 10s when tab is hidden ────────────
+  // ── Adaptive polling & Visibility state management ──────────────────────
   useEffect(() => {
     if (!activeStadiumId) return;
 
     const fetchData = async () => {
-      // Cancel any in-flight request before starting a new one
       if (abortControllerRef.current) {
         abortControllerRef.current.abort();
       }
@@ -69,25 +73,20 @@ export default function Home() {
       abortControllerRef.current = controller;
 
       try {
-<<<<<<< HEAD
         const res = await axios.get(
-          `http://localhost:8000/api/stadium-data?stadium_id=${encodeURIComponent(activeStadiumId)}`,
+          `${BASE_URL}/api/stadium-data?stadium_id=${encodeURIComponent(activeStadiumId)}`,
           { signal: controller.signal }
         );
-=======
-        const res = await axios.get(`${BASE_URL}/api/stadium-data?stadium_id=${activeStadiumId}`);
->>>>>>> 14fc5bc6149bc7fd0a30698a3294216d6f56f66a
         setStadiumData(res.data);
       } catch (err) {
         if (!axios.isCancel(err)) {
-          console.error("Backend not running or unreachable");
+          console.error("Data fetch failed or backend unreachable");
         }
       }
     };
 
     fetchData();
 
-    // Adaptive interval — slow down when page is not visible
     const getInterval = () =>
       document.visibilityState === "hidden" ? 10000 : 3000;
 
@@ -106,22 +105,38 @@ export default function Home() {
     };
   }, [activeStadiumId]);
 
-<<<<<<< HEAD
-  // Track page view when entering a stadium dashboard
+  // Track page view and focus on entering a stadium
   useEffect(() => {
     if (activeStadiumId) {
       trackPageView(`Stadium Dashboard: ${activeStadiumId}`);
-=======
-  const handleEventTrigger = async (eventName: string) => {
-    try {
-      await axios.post("https://crowdflow-backend-79696992591.us-central1.run.app/api/trigger-event", { stadium_id: activeStadiumId, event_name: eventName });
-    } catch (e) {
-      console.error(e);
->>>>>>> 14fc5bc6149bc7fd0a30698a3294216d6f56f66a
     }
   }, [activeStadiumId]);
 
-<<<<<<< HEAD
+  // ── Focus Trap for Mobile Sidebar (Accessibility Maturity) ────────────────
+  useEffect(() => {
+    if (!isSidebarOpen || !sidebarRef.current) return;
+
+    const trapFocus = (e: KeyboardEvent) => {
+      if (e.key !== "Tab") return;
+      const focusableElements = sidebarRef.current!.querySelectorAll(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      );
+      const first = focusableElements[0] as HTMLElement;
+      const last = focusableElements[focusableElements.length - 1] as HTMLElement;
+
+      if (e.shiftKey && document.activeElement === first) {
+        last.focus();
+        e.preventDefault();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        first.focus();
+        e.preventDefault();
+      }
+    };
+
+    document.addEventListener("keydown", trapFocus);
+    return () => document.removeEventListener("keydown", trapFocus);
+  }, [isSidebarOpen]);
+
   const handleStadiumSelect = useCallback((id: string) => {
     trackStadiumSelect(id);
     setActiveStadiumId(id);
@@ -152,7 +167,7 @@ export default function Home() {
       if (!activeStadiumId) return;
       const safeEvent = sanitizeInput(eventName, 64);
       try {
-        await axios.post("http://localhost:8000/api/trigger-event", {
+        await axios.post(`${BASE_URL}/api/trigger-event`, {
           stadium_id: activeStadiumId,
           event_name: safeEvent,
         });
@@ -171,7 +186,7 @@ export default function Home() {
       setStadiumData((prev) => (prev ? { ...prev, user_location: safeLocation } : prev));
       locationDebounceRef.current = setTimeout(async () => {
         try {
-          await axios.post("http://localhost:8000/api/set-location", {
+          await axios.post(`${BASE_URL}/api/set-location`, {
             stadium_id: activeStadiumId,
             location: safeLocation,
           });
@@ -182,17 +197,8 @@ export default function Home() {
     },
     [activeStadiumId]
   );
-=======
-  const handleLocationChange = async (loc: string) => {
-    try {
-      await axios.post("https://crowdflow-backend-79696992591.us-central1.run.app/api/set-location", { stadium_id: activeStadiumId, location: loc });
-      setStadiumData(prev => prev ? { ...prev, user_location: loc } : prev);
-    } catch (e) {
-      console.error(e);
-    }
-  };
->>>>>>> 14fc5bc6149bc7fd0a30698a3294216d6f56f66a
 
+  // Initial landing screen
   if (!activeStadiumId) {
     return (
       <StadiumSelector
@@ -205,7 +211,6 @@ export default function Home() {
 
   return (
     <>
-      {/* Skip navigation for keyboard/screen-reader users */}
       <a
         href="#main-content"
         className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-[999] focus:px-4 focus:py-2 focus:bg-blue-600 focus:text-white focus:rounded-lg focus:font-semibold focus:outline-none focus:ring-2 focus:ring-blue-400"
@@ -225,10 +230,11 @@ export default function Home() {
           />
         )}
 
-        {/* Sidebar */}
+        {/* Sidebar Navigation */}
         <aside
+          ref={sidebarRef}
           id="sidebar"
-          aria-label="Main navigation"
+          aria-label="Main system navigation"
           className={`fixed md:relative top-0 left-0 h-full w-64 bg-app-surface/95 border-r border-app-border flex flex-col p-6 z-50 backdrop-blur-xl transition-transform duration-300 ${
             isSidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
           }`}
@@ -241,7 +247,8 @@ export default function Home() {
               </span>
             </div>
             <button
-              className="md:hidden text-app-muted hover:text-app-primary"
+              id="close-sidebar-btn"
+              className="md:hidden text-app-muted hover:text-app-primary p-1"
               onClick={() => setIsSidebarOpen(false)}
               aria-label="Close navigation menu"
             >
@@ -250,6 +257,7 @@ export default function Home() {
           </div>
 
           <button
+            id="back-to-venues-btn"
             onClick={() => {
               setActiveStadiumId(null);
               setIsSidebarOpen(false);
@@ -269,6 +277,7 @@ export default function Home() {
                     role="tab"
                     onClick={() => handleTabChange(id)}
                     aria-selected={activeTab === id}
+                    aria-current={activeTab === id ? "page" : undefined}
                     aria-controls={`tabpanel-${id}`}
                     className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
                       activeTab === id
@@ -286,6 +295,7 @@ export default function Home() {
 
           <div className="mt-auto space-y-6">
             <button
+              id="theme-toggle-sidebar"
               onClick={handleThemeToggle}
               aria-label={isDarkMode ? "Switch to light mode" : "Switch to dark mode"}
               aria-pressed={isDarkMode}
@@ -295,10 +305,10 @@ export default function Home() {
               {isDarkMode ? "Light Mode" : "Dark Mode"}
             </button>
 
-            <div>
+            <div className="bg-app-surface-hover p-3 rounded-xl border border-app-border">
               <label
                 htmlFor="gps-sim-select"
-                className="text-xs text-app-muted mb-2 uppercase tracking-wider font-semibold flex items-center gap-2"
+                className="text-xs text-app-muted mb-2 uppercase tracking-wider font-bold flex items-center gap-2"
               >
                 <Map size={14} aria-hidden="true" /> User GPS Sim
               </label>
@@ -318,28 +328,31 @@ export default function Home() {
               </select>
             </div>
 
-            <div>
-              <div className="text-xs text-app-muted mb-2 uppercase tracking-wider font-semibold" aria-hidden="true">
+            <div className="bg-app-surface-hover p-3 rounded-xl border border-app-border">
+              <div className="text-xs text-app-muted mb-3 uppercase tracking-wider font-bold" aria-hidden="true">
                 Event Simulator
               </div>
               <div className="space-y-2" role="group" aria-label="Trigger crowd management event scenarios">
                 <button
+                  id="btn-trigger-halftime"
                   onClick={() => handleEventTrigger("Halftime")}
-                  className="w-full text-left px-3 py-2 text-sm bg-app-surface-hover rounded hover:bg-orange-500/20 transition-colors"
+                  className="w-full text-left px-3 py-2 text-xs font-semibold bg-app-surface rounded-lg hover:bg-orange-500/20 hover:text-orange-500 transition-colors border border-app-border"
                   aria-label="Simulate halftime rush event"
                 >
                   Halftime Rush
                 </button>
                 <button
+                  id="btn-trigger-block-gate"
                   onClick={() => handleEventTrigger("Gate 1 Blocked")}
-                  className="w-full text-left px-3 py-2 text-sm bg-app-surface-hover rounded hover:bg-red-500/20 transition-colors"
+                  className="w-full text-left px-3 py-2 text-xs font-semibold bg-app-surface rounded-lg hover:bg-red-500/20 hover:text-red-500 transition-colors border border-app-border"
                   aria-label="Simulate Gate 1 blocked event"
                 >
                   Block Gate 1
                 </button>
                 <button
+                  id="btn-trigger-clear"
                   onClick={() => handleEventTrigger("Clear")}
-                  className="w-full text-left px-3 py-2 text-sm bg-app-surface-hover rounded hover:bg-green-500/20 transition-colors"
+                  className="w-full text-left px-3 py-2 text-xs font-semibold bg-app-surface rounded-lg hover:bg-green-500/20 hover:text-green-500 transition-colors border border-app-border"
                   aria-label="Clear all active crowd events"
                 >
                   Clear Events
@@ -349,7 +362,7 @@ export default function Home() {
           </div>
         </aside>
 
-        {/* Main Content */}
+        {/* Main Content Area */}
         <main
           id="main-content"
           className="flex-1 flex flex-col p-4 md:p-8 overflow-hidden relative"
@@ -358,6 +371,7 @@ export default function Home() {
           <header className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-8">
             <div className="flex items-center gap-4">
               <button
+                id="sidebar-toggle-btn"
                 className="md:hidden p-2.5 bg-app-surface/50 border border-app-border rounded-xl text-app-muted hover:text-app-primary hover:bg-app-surface-hover backdrop-blur-md shadow-sm"
                 onClick={() => setIsSidebarOpen(true)}
                 aria-label="Open navigation menu"
@@ -371,27 +385,27 @@ export default function Home() {
                   {stadiumData?.name || "System Terminal"}
                 </h1>
                 <p className="text-app-muted text-xs md:text-sm mt-1">
-                  Real-time stadium analytics powered by Google Cloud
+                  Real-time analytics engine — {activeStadiumId.toUpperCase()}
                 </p>
               </div>
             </div>
 
             {stadiumData?.active_event && (
               <div
+                id="active-event-status"
                 role="status"
                 aria-live="assertive"
                 aria-atomic="true"
-                className="animate-pulse flex items-center gap-2 bg-red-500/20 text-red-500 px-4 py-2 rounded-full border border-red-500/30 w-fit"
+                className="animate-pulse flex items-center gap-2 bg-red-500/10 text-red-500 px-4 py-2 rounded-full border border-red-500/30 w-fit"
               >
                 <TriangleAlert size={16} aria-hidden="true" />
-                <span className="font-semibold text-sm">
-                  ACTIVE EVENT: {stadiumData.active_event}
+                <span className="font-bold text-xs uppercase tracking-widest">
+                  {stadiumData.active_event}
                 </span>
               </div>
             )}
           </header>
 
-          {/* Tab panels — each panel has proper tabpanel role and labelled by its tab button */}
           <div className="flex-1 overflow-y-auto pr-1 md:pr-4 custom-scrollbar">
             <div
               id="tabpanel-dashboard"

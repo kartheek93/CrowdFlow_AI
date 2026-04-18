@@ -9,16 +9,11 @@ import os
 import random
 import math
 from dotenv import load_dotenv
-<<<<<<< HEAD
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 from fastapi.middleware.gzip import GZipMiddleware
 import hashlib
-=======
-from fastapi.middleware.cors import CORSMiddleware
-
->>>>>>> 14fc5bc6149bc7fd0a30698a3294216d6f56f66a
 
 load_dotenv()
 
@@ -37,7 +32,10 @@ LOCATION_RE = re.compile(r"^[\w\s\-\(\)\.,']+$", re.UNICODE)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Start background simulator on app startup."""
+    """
+    Lifespan context manager for the FastAPI application.
+    Handles startup (starting background simulation) and shutdown.
+    """
     task = asyncio.create_task(simulator_task())
     yield
     task.cancel()
@@ -50,15 +48,20 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+# ─── Rate Limiting Configuration ─────────────────────────────────────────────
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 # ─── Efficiency: GZip Compression ─────────────────────────────────────────────
+# Compresses responses larger than 1000 bytes for better bandwidth efficiency.
 app.add_middleware(GZipMiddleware, minimum_size=1000)
 
 # ─── Security: Request size limit ─────────────────────────────────────────────
 @app.middleware("http")
 async def limit_request_size(request: Request, call_next):
+    """
+    Middleware to prevent large payload attacks by capping POST requests at 1MB.
+    """
     if request.method == "POST":
         content_length = request.headers.get("content-length")
         if content_length and int(content_length) > 1 * 1024 * 1024:  # 1MB limit
@@ -66,6 +69,7 @@ async def limit_request_size(request: Request, call_next):
     return await call_next(request)
 
 # ─── Security: Tightened CORS ─────────────────────────────────────────────────
+# Enforces allowed origins and headers for cross-site safety.
 ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "*").split(",")
 
 app.add_middleware(
@@ -77,9 +81,12 @@ app.add_middleware(
 )
 
 
-# ─── Security: Comprehensive security headers middleware ──────────────────────
 @app.middleware("http")
 async def add_security_headers(request: Request, call_next):
+    """
+    Middleware to inject essential security headers into every response.
+    Includes CSP, HSTS, XSS-Protection, and Frame-Options.
+    """
     response = await call_next(request)
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["X-Frame-Options"] = "DENY"
@@ -98,6 +105,7 @@ async def add_security_headers(request: Request, call_next):
     return response
 
 
+# ─── Data & Constants ────────────────────────────────────────────────────────
 INDIAN_STADIUMS = [
     {"id": "narendra_modi", "name": "Narendra Modi Stadium", "lat": 23.0917, "lng": 72.5975},
     {"id": "wankhede", "name": "Wankhede Stadium", "lat": 18.9388, "lng": 72.8258},
@@ -123,12 +131,11 @@ INDIAN_STADIUMS = [
     {"id": "fatorda", "name": "Fatorda Stadium Goa", "lat": 15.2891, "lng": 73.9610},
 ]
 
-# Build a fast lookup index from valid stadium IDs
 VALID_STADIUM_IDS = {s["id"] for s in INDIAN_STADIUMS}
 
 
 def haversine(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
-    """Calculate haversine distance in km between two GPS coordinates."""
+    """Calculate the haversine distance in kilometers between two GPS coordinate points."""
     R = 6371.0
     d_lat = math.radians(lat2 - lat1)
     d_lon = math.radians(lon2 - lon1)
@@ -138,7 +145,7 @@ def haversine(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
 
 
 def _compute_level(time_val: int) -> str:
-    """Map a wait-time integer to a string density level."""
+    """Classify crowd density based on wait-time thresholds."""
     if time_val > 15:
         return "High"
     if time_val > 5:
@@ -147,6 +154,10 @@ def _compute_level(time_val: int) -> str:
 
 
 class DataEngine:
+    """
+    In-memory state engine for stadium simulation.
+    Handles dynamic stadium generation and real-time state updates (tick).
+    """
     def __init__(self):
         self.stadiums: dict = {
             "narendra_modi": {
@@ -202,7 +213,7 @@ class DataEngine:
         }
 
     def generate_dynamic_stadium(self, stadium_id: str, name: str, lat: float, lng: float):
-        """Lazily generate stadium data for stadiums not pre-seeded."""
+        """Seed a new stadium into the engine with randomized initial crowd data."""
         self.stadiums[stadium_id] = {
             "name": name,
             "coords": {"lat": lat, "lng": lng},
@@ -218,7 +229,7 @@ class DataEngine:
         }
 
     def tick(self):
-        """Simulate real-time crowd fluctuations across all loaded stadiums."""
+        """Update wait-times for every location in every stadium to mimic real-time activity."""
         for s_id, s_data in self.stadiums.items():
             for loc, info in s_data["wait_times"].items():
                 old_time = info["time"]
@@ -243,7 +254,7 @@ db = DataEngine()
 
 
 async def simulator_task():
-    """Background coroutine that ticks crowd simulation every 5 seconds."""
+    """Background simulator loop that updates the data engine state every 5 seconds."""
     while True:
         db.tick()
         await asyncio.sleep(5)
@@ -251,11 +262,20 @@ async def simulator_task():
 
 # ─── API Routes ───────────────────────────────────────────────────────────────
 
+@app.get("/api/stadiums", summary="List all supported stadiums")
+@limiter.limit("60/minute")
+def get_stadium_metadata(request: Request):
+    """Retrieve the static list of stadium metadata including coordinates and IDs."""
+    return INDIAN_STADIUMS
+
+
 @app.get("/api/stadium-data", summary="Fetch live crowd data for a stadium")
 @limiter.limit("60/minute")
 def get_stadium_data(request: Request, stadium_id: str = "narendra_modi"):
-    """Return live wait-time and crowd data for the requested stadium."""
-    # Security: strip, truncate and allowlist-validate stadium_id
+    """
+    Return live wait-time analytics, event status, and user location for the requested stadium.
+    Implements ETag hashing and Cache-Control for high efficiency.
+    """
     stadium_id = stadium_id.strip()[:64]
     if stadium_id not in VALID_STADIUM_IDS:
         stadium_id = "narendra_modi"
@@ -277,7 +297,6 @@ def get_stadium_data(request: Request, stadium_id: str = "narendra_modi"):
     return response
 
 
-# ─── Security: Validated coordinate bounds ────────────────────────────────────
 class NearestRequest(BaseModel):
     lat: float = Field(..., ge=-90.0, le=90.0, description="Latitude between -90 and 90")
     lng: float = Field(..., ge=-180.0, le=180.0, description="Longitude between -180 and 180")
@@ -286,7 +305,7 @@ class NearestRequest(BaseModel):
 @app.post("/api/find-nearest", summary="Find nearest stadium to GPS coordinates")
 @limiter.limit("30/minute")
 def find_nearest_stadium(request: Request, req: NearestRequest):
-    """Find the geographically nearest stadium to the supplied GPS coordinates."""
+    """Calculate and return the nearest stadium to the user's GPS coordinates using Haversine."""
     closest = min(
         INDIAN_STADIUMS,
         key=lambda s: haversine(req.lat, req.lng, s["lat"], s["lng"]),
@@ -321,7 +340,7 @@ class LocationRequest(BaseModel):
 @app.post("/api/set-location", summary="Update user location within a stadium")
 @limiter.limit("60/minute")
 def set_location(request: Request, req: LocationRequest):
-    """Update the simulated user GPS position within a stadium."""
+    """Set the simulated user location within a specific stadium for navigational context."""
     if req.stadium_id in db.stadiums:
         db.stadiums[req.stadium_id]["user_location"] = req.location
         return {"status": "success"}
@@ -349,12 +368,13 @@ class EventRequest(BaseModel):
         return v
 
 
-@app.post("/api/trigger-event", summary="Trigger a stadium event like Halftime or Clear")
+@app.post("/api/trigger-event", summary="Trigger a stadium event scenario")
 @limiter.limit("20/minute")
 def trigger_event(request: Request, req: EventRequest):
-    """Trigger a crowd-management event scenario at a stadium."""
-    # Security: In a real app, this would be an actual token from an auth provider.
-    # For hackathon evaluation, we allow an 'ADMIN_KEY' environment variable.
+    """
+    Trigger a global override event (e.g. Halftime) for the specified stadium.
+    Requires Authorization bearer token in production environments.
+    """
     auth_key = request.headers.get("Authorization")
     expected_key = os.getenv("ADMIN_AUTH_KEY", "dev-admin-secret")
     
@@ -374,17 +394,20 @@ class ChatRequest(BaseModel):
     @field_validator("query")
     @classmethod
     def sanitize_query(cls, v: str) -> str:
-        """Strip control characters and excessive whitespace from user query."""
+        """Filter user input for control characters and strip whitespace."""
         v = re.sub(r"[\x00-\x1f\x7f]", "", v).strip()
         if not v:
             raise ValueError("Query cannot be empty after sanitization")
         return v
 
 
-@app.post("/api/ask-ai", summary="Ask the AI assistant a crowd management question")
+@app.post("/api/ask-ai", summary="Query the Gemini AI assistant")
 @limiter.limit("20/minute")
 def ask_ai(request: Request, req: ChatRequest):
-    """Submit a natural-language query and receive AI-powered crowd management advice."""
+    """
+    Submit crowd-related questions to the Gemini LLM for proactive decision recommendations.
+    Uses stadium-specific live state as conversational context.
+    """
     if req.stadium_id not in db.stadiums:
         req.stadium_id = "narendra_modi"
 
@@ -466,5 +489,5 @@ User Query: {req.query}
 
 @app.get("/health", summary="Health check endpoint")
 def health_check():
-    """Return API health status and number of loaded stadiums."""
+    """Verify backend system status and count of active stadium simulations."""
     return {"status": "ok", "stadiums_loaded": len(db.stadiums)}

@@ -5,6 +5,7 @@ import type { ChatMessage, AIResponse } from "../lib/types";
 import { trackAIQuery } from "../lib/analytics";
 
 const MAX_MESSAGES = 100; // Cap to prevent unbounded memory growth
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 /** Memoized — re-renders only when stadiumId changes, not on parent polling ticks. */
 const AIAssistant = memo(function AIAssistant({ stadiumId }: { stadiumId: string }) {
@@ -32,27 +33,18 @@ const AIAssistant = memo(function AIAssistant({ stadiumId }: { stadiumId: string
     if (!userMessage || isSendingRef.current) return;
 
     isSendingRef.current = true;
+    trackAIQuery(stadiumId, userMessage.length);
+
     setMessages((prev) => {
       const updated = [...prev, { role: "user" as const, text: userMessage }];
-      // Cap at MAX_MESSAGES to prevent memory growth in long sessions
       return updated.length > MAX_MESSAGES ? updated.slice(-MAX_MESSAGES) : updated;
     });
     setInput("");
     setLoading(true);
 
-<<<<<<< HEAD
-    trackAIQuery(stadiumId, userMessage.length);
-=======
-    try {
-      const res = await axios.post("https://crowdflow-backend-79696992591.us-central1.run.app/api/ask-ai", {
-        stadium_id: stadiumId,
-        query: userMessage
-      });
->>>>>>> 14fc5bc6149bc7fd0a30698a3294216d6f56f66a
-
     try {
       const res = await axios.post<AIResponse>(
-        "http://localhost:8000/api/ask-ai",
+        `${BASE_URL}/api/ask-ai`,
         { stadium_id: stadiumId, query: userMessage }
       );
 
@@ -95,7 +87,6 @@ const AIAssistant = memo(function AIAssistant({ stadiumId }: { stadiumId: string
       role="region"
       aria-label="AI Assistant chat interface"
     >
-      {/* Header */}
       <div className="p-4 border-b border-app-border bg-app-surface/50 flex justify-between items-center rounded-t-xl">
         <div className="flex items-center gap-2">
           <Bot className="text-blue-500" aria-hidden="true" />
@@ -105,7 +96,6 @@ const AIAssistant = memo(function AIAssistant({ stadiumId }: { stadiumId: string
         </div>
       </div>
 
-      {/* Message log — aria-live so screen readers announce new messages */}
       <div
         role="log"
         aria-live="polite"
@@ -162,7 +152,6 @@ const AIAssistant = memo(function AIAssistant({ stadiumId }: { stadiumId: string
         <div ref={messagesEndRef} aria-hidden="true" />
       </div>
 
-      {/* Input area */}
       <div className="p-4 border-t border-app-border bg-app-surface/50 rounded-b-xl">
         <div className="flex gap-2 mb-4 overflow-x-auto pb-2" role="group" aria-label="Suggested questions">
           <button

@@ -35,6 +35,8 @@ const STADIUMS = [
   { id: "fatorda", name: "Fatorda Stadium", city: "Margao, Goa" },
 ] as const;
 
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+
 export default function StadiumSelector({ onSelect, isDarkMode = true, onToggleTheme }: Props) {
   const [isLocating, setIsLocating] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -51,7 +53,6 @@ export default function StadiumSelector({ onSelect, isDarkMode = true, onToggleT
       return;
     }
     setIsLocating(true);
-<<<<<<< HEAD
     trackAutoLocate();
 
     navigator.geolocation.getCurrentPosition(
@@ -59,7 +60,7 @@ export default function StadiumSelector({ onSelect, isDarkMode = true, onToggleT
         try {
           const { latitude, longitude } = position.coords;
           const res = await axios.post<NearestStadiumResponse>(
-            "http://localhost:8000/api/find-nearest",
+            `${BASE_URL}/api/find-nearest`,
             { lat: latitude, lng: longitude }
           );
           if (res.data?.stadium_id) {
@@ -75,21 +76,6 @@ export default function StadiumSelector({ onSelect, isDarkMode = true, onToggleT
         } catch (err) {
           console.error(err);
           alert("Failed to connect to the stadium engine.");
-=======
-    navigator.geolocation.getCurrentPosition(async (position) => {
-      try {
-        const { latitude, longitude } = position.coords;
-        const res = await axios.post("https://crowdflow-backend-79696992591.us-central1.run.app/api/find-nearest", {
-          lat: latitude,
-          lng: longitude
-        });
-        
-        if (res.data && res.data.stadium_id) {
-          alert(`GPS matched your location to nearest stadium:\n\n${res.data.name}\n(Distance: ${res.data.distance_km} km)`);
-          onSelect(res.data.stadium_id);
-        } else {
-          alert("Could not find a stadium nearby.");
->>>>>>> 14fc5bc6149bc7fd0a30698a3294216d6f56f66a
           setIsLocating(false);
         }
       },
@@ -107,7 +93,6 @@ export default function StadiumSelector({ onSelect, isDarkMode = true, onToggleT
         className="min-h-screen bg-app-bg-translucent text-app-primary flex flex-col items-center p-6 lg:p-10 relative z-10 transition-colors duration-300"
         role="main"
       >
-        {/* Skip to content */}
         <a
           href="#stadium-grid"
           className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:px-4 focus:py-2 focus:bg-blue-600 focus:text-white focus:rounded-lg focus:font-semibold focus:outline-none"
@@ -115,7 +100,6 @@ export default function StadiumSelector({ onSelect, isDarkMode = true, onToggleT
           Skip to stadium list
         </a>
 
-        {/* Header row */}
         <div className="flex items-center justify-between w-full max-w-6xl mb-8">
           <div className="flex items-center gap-3 text-xl font-bold" aria-label="CrowdFlowX logo">
             <Activity className="text-blue-500" aria-hidden="true" />
@@ -196,7 +180,6 @@ export default function StadiumSelector({ onSelect, isDarkMode = true, onToggleT
                 className="w-full bg-app-surface/60 border border-app-border rounded-xl pl-11 pr-4 py-3 text-app-primary focus:outline-none focus:border-blue-500 transition-colors"
                 aria-controls="stadium-grid"
               />
-              {/* Invisible live region for search result announcements */}
               <div role="status" aria-live="polite" className="sr-only">
                 {searchQuery && `${filteredStadiums.length} stadiums found.`}
               </div>

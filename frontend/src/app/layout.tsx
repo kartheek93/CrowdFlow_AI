@@ -1,20 +1,14 @@
 import type { Metadata } from "next";
-<<<<<<< HEAD
 import { Inter } from "next/font/google";
-=======
->>>>>>> 14fc5bc6149bc7fd0a30698a3294216d6f56f66a
 import "./globals.css";
 import Script from "next/script";
 
-<<<<<<< HEAD
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
   display: "swap",
 });
 
-=======
->>>>>>> 14fc5bc6149bc7fd0a30698a3294216d6f56f66a
 export const metadata: Metadata = {
   title: "CrowdFlow AI – Smart Stadium Crowd Management",
   description:
@@ -61,11 +55,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-<<<<<<< HEAD
-    <html
-      lang="en"
-      className={`${inter.variable} h-full antialiased`}
-    >
+    <html lang="en" className={`${inter.variable} h-full antialiased`}>
       <head>
         <meta name="theme-color" content="#0f172a" />
         <link rel="icon" href="/favicon.ico" />
@@ -90,9 +80,6 @@ export default function RootLayout({
           </>
         )}
       </head>
-=======
-    <html lang="en" className="h-full antialiased">
->>>>>>> 14fc5bc6149bc7fd0a30698a3294216d6f56f66a
       <body className="min-h-full flex flex-col">{children}</body>
     </html>
   );
